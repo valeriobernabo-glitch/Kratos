@@ -36,4 +36,5 @@ EXPOSE 3001
 ENV PORT=3001
 ENV NODE_ENV=production
 
-CMD ["node", "--import", "tsx", "apps/api/src/index.ts"]
+WORKDIR /app/apps/api
+CMD ["npx", "tsx", "src/index.ts"]
