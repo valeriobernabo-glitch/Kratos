@@ -1,0 +1,17 @@
+node_modules
+.next
+.turbo
+dist
+.git
+.claude
+Design
+Current Setup CC
+*.md
+!package.json
+!pnpm-workspace.yaml
+!pnpm-lock.yaml
+!turbo.json
+.env
+.env.*
+coverage
+*.log

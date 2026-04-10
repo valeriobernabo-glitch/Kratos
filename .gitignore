@@ -48,8 +48,7 @@ tmp/
 # Test coverage
 coverage/
 
-# Fly.io
-fly.toml
+# Fly.io (fly.toml is tracked — deployment config should be in git)
 
 # Drizzle
 drizzle/meta/
