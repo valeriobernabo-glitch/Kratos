@@ -38,11 +38,11 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl gradient-cta shadow-lg shadow-primary/30">
-            <span className="text-3xl font-bold text-white font-[family-name:var(--font-headline)]">
-              K
-            </span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Kratos WMS"
+            className="mb-2 inline-block h-20 w-auto"
+          />
           <h1 className="text-2xl font-bold tracking-tight font-[family-name:var(--font-headline)]">
             Create your account
           </h1>

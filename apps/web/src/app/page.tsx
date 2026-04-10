@@ -2,11 +2,11 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl gradient-cta shadow-lg shadow-primary/30">
-          <span className="text-4xl font-bold text-white font-[family-name:var(--font-headline)]">
-            K
-          </span>
-        </div>
+        <img
+          src="/logo.png"
+          alt="Kratos WMS"
+          className="mb-6 inline-block h-24 w-auto"
+        />
         <h1 className="mb-2 text-4xl font-bold tracking-tight font-[family-name:var(--font-headline)]">
           Kratos WMS
         </h1>

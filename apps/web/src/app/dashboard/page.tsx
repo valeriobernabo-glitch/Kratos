@@ -5,11 +5,11 @@ export default function DashboardPage() {
       <aside className="fixed left-0 top-0 h-screen w-64 glass-sidebar flex flex-col gap-2 px-4 py-6 crystalline-edge border-r border-white/20">
         <div className="mb-6 px-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-cta text-white shadow-lg shadow-primary/30">
-              <span className="text-lg font-bold font-[family-name:var(--font-headline)]">
-                K
-              </span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="Kratos"
+              className="h-10 w-auto"
+            />
             <div>
               <h3 className="text-sm font-bold leading-tight font-[family-name:var(--font-headline)]">
                 Kratos WMS
