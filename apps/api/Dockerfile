@@ -36,4 +36,4 @@ EXPOSE 3001
 ENV PORT=3001
 ENV NODE_ENV=production
 
-CMD ["pnpm", "--filter", "@kratos/api", "dev"]
+CMD ["node", "--import", "tsx", "apps/api/src/index.ts"]
