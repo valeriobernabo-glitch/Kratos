@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/* ============================================
+   KRATOS WMS — Neon Amethyst Design System
+   ============================================ */
+
+@theme {
+  /* Primary — Violet/Purple */
+  --color-primary: #8b5cf6;
+  --color-primary-dim: #5e26c7;
+  --color-primary-container: #ae8dff;
+  --color-primary-fixed: #ae8dff;
+  --color-primary-fixed-dim: #a27cff;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #2b006e;
+
+  /* Secondary — Muted Purple */
+  --color-secondary: #6c4d8f;
+  --color-secondary-dim: #604182;
+  --color-secondary-container: #e3c6ff;
+  --color-on-secondary: #faefff;
+  --color-on-secondary-container: #573979;
+
+  /* Tertiary — Fuchsia/Pink */
+  --color-tertiary: #d437a5;
+  --color-tertiary-dim: #912063;
+  --color-tertiary-container: #ff8bc5;
+  --color-tertiary-fixed: #ff8bc5;
+  --color-tertiary-fixed-dim: #f976ba;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #630040;
+
+  /* Error */
+  --color-error: #b41340;
+  --color-error-dim: #a70138;
+  --color-error-container: #f74b6d;
+  --color-on-error: #ffefef;
+  --color-on-error-container: #510017;
+
+  /* Surfaces — Glass Hierarchy */
+  --color-background: #f8f7ff;
+  --color-surface: #f8f7ff;
+  --color-surface-bright: #f5f7f9;
+  --color-surface-dim: #d0d5d8;
+  --color-surface-tint: #8b5cf6;
+  --color-surface-variant: #d9dde0;
+  --color-surface-container: #e5e9eb;
+  --color-surface-container-low: #f0f2f5;
+  --color-surface-container-high: #dfe3e6;
+  --color-surface-container-highest: #d9dde0;
+  --color-surface-container-lowest: #ffffff;
+
+  /* Text */
+  --color-on-surface: #1e1e2d;
+  --color-on-surface-variant: #4a4a68;
+  --color-on-background: #1e1e2d;
+
+  /* Borders */
+  --color-outline: #747779;
+  --color-outline-variant: #abadaf;
+
+  /* Inverse */
+  --color-inverse-surface: #0b0f10;
+  --color-inverse-on-surface: #9a9d9f;
+  --color-inverse-primary: #a078ff;
+
+  /* Typography */
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Manrope", sans-serif;
+}
+
+/* Base styles */
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+}
+
+/* Glassmorphism utilities */
+@utility glass-panel {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+@utility glass-sidebar {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+}
+
+@utility crystalline-edge {
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+@utility neon-glow {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+}
+
+@utility gradient-cta {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-tertiary));
+}
+
+@utility gradient-text {
+  background: linear-gradient(to right, #7c3aed, #d946ef, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

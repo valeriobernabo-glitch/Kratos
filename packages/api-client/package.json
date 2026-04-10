@@ -1,0 +1,19 @@
+{
+  "name": "@kratos/api-client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@kratos/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@kratos/config": "workspace:*",
+    "typescript": "^5.7.0"
+  }
+}
