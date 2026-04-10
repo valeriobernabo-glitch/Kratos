@@ -11,19 +11,20 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@kratos/api-client": "workspace:*",
+    "@kratos/shared": "workspace:*",
+    "better-auth": "^1.6.2",
     "next": "^15.2.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@kratos/shared": "workspace:*",
-    "@kratos/api-client": "workspace:*"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@kratos/config": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.7.0",
-    "@tailwindcss/postcss": "^4.1.0",
+    "postcss": "^8.4.0",
     "tailwindcss": "^4.1.0",
-    "postcss": "^8.4.0"
+    "typescript": "^5.7.0"
   }
 }
