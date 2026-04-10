@@ -36,4 +36,4 @@ EXPOSE 3001
 ENV PORT=3001
 ENV NODE_ENV=production
 
-CMD ["pnpm", "--filter", "@kratos/api", "build"]
+CMD ["pnpm", "--filter", "@kratos/api", "dev"]

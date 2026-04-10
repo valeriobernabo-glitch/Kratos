@@ -9,4 +9,5 @@ console.log(`Kratos API starting on port ${port}`);
 serve({
   fetch: app.fetch,
   port,
+  hostname: "0.0.0.0",
 });
