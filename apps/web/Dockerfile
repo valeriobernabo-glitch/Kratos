@@ -32,8 +32,10 @@ COPY packages/shared/ ./packages/shared/
 COPY packages/api-client/ ./packages/api-client/
 COPY apps/web/ ./apps/web/
 
-# Build Next.js
+# Build Next.js — NEXT_PUBLIC_ vars must be set at build time
 ENV NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_API_URL=https://kratos-api.fly.dev
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN pnpm --filter @kratos/web build
 
 FROM base AS production
