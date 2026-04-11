@@ -3,6 +3,8 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { auth } from "./auth";
 import { healthRoutes } from "./routes/health";
+import { productRoutes } from "./routes/products";
+import { locationRoutes } from "./routes/locations";
 
 const app = new Hono()
   .use("*", logger())
@@ -21,7 +23,9 @@ const app = new Hono()
   .on(["POST", "GET"], "/api/auth/**", (c) => {
     return auth.handler(c.req.raw);
   })
-  .route("/api", healthRoutes);
+  .route("/api", healthRoutes)
+  .route("/api", productRoutes)
+  .route("/api", locationRoutes);
 
 export { app };
 export type AppType = typeof app;

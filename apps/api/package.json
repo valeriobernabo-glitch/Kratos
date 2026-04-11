@@ -16,7 +16,8 @@
     "@kratos/shared": "workspace:*",
     "better-auth": "^1.6.2",
     "dotenv": "^16.4.0",
-    "hono": "^4.7.0"
+    "hono": "^4.7.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@kratos/config": "workspace:*",
