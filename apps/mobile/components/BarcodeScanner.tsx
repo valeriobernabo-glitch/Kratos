@@ -70,17 +70,10 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
         enableTorch={torchOn}
         barcodeScannerSettings={{
           barcodeTypes: [
-            "ean13",
-            "ean8",
             "code128",
             "code39",
-            "qr",
-            "upc_a",
-            "upc_e",
-            "codabar",
-            "itf14",
           ],
-          interval: 200,
+          interval: 300,
         }}
         onBarcodeScanned={scanned ? undefined : handleScan}
       >
