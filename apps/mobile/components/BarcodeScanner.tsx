@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
+import {
+  CameraView,
+  useCameraPermissions,
+  type BarcodeScanningResult,
+} from "expo-camera";
 import * as Haptics from "expo-haptics";
 
 type Props = {
@@ -12,6 +16,8 @@ type Props = {
 export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
+  const [zoom, setZoom] = useState(0);
 
   if (!permission) {
     return (
@@ -24,7 +30,9 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>Camera access is required for scanning</Text>
+        <Text style={styles.message}>
+          Camera access is required for scanning
+        </Text>
         <TouchableOpacity style={styles.button} onPress={requestPermission}>
           <Text style={styles.buttonText}>Grant Permission</Text>
         </TouchableOpacity>
@@ -42,10 +50,24 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
     onScan(result.data);
   }
 
+  function cycleZoom() {
+    setZoom((prev) => {
+      if (prev === 0) return 0.1;
+      if (prev === 0.1) return 0.2;
+      return 0;
+    });
+  }
+
+  const zoomLabel = zoom === 0 ? "1x" : zoom === 0.1 ? "2x" : "3x";
+
   return (
     <View style={styles.container}>
       <CameraView
         style={styles.camera}
+        facing="back"
+        autofocus="on"
+        zoom={zoom}
+        enableTorch={torchOn}
         barcodeScannerSettings={{
           barcodeTypes: [
             "ean13",
@@ -55,22 +77,69 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
             "qr",
             "upc_a",
             "upc_e",
+            "codabar",
+            "itf14",
           ],
+          interval: 200,
         }}
         onBarcodeScanned={scanned ? undefined : handleScan}
       >
         <View style={styles.overlay}>
+          {/* Instruction bar */}
           {instruction && (
             <View style={styles.instructionBar}>
               <Text style={styles.instructionText}>{instruction}</Text>
             </View>
           )}
+
+          {/* Rectangular scan guide — matches barcode shape */}
           <View style={styles.scanArea}>
             <View style={[styles.corner, styles.topLeft]} />
             <View style={[styles.corner, styles.topRight]} />
             <View style={[styles.corner, styles.bottomLeft]} />
             <View style={[styles.corner, styles.bottomRight]} />
+            {/* Center line to help align with barcode */}
+            <View style={styles.scanLine} />
           </View>
+
+          <Text style={styles.hint}>
+            Align barcode within the frame
+          </Text>
+
+          {/* Controls row: torch + zoom */}
+          <View style={styles.controlsRow}>
+            <TouchableOpacity
+              style={[styles.controlButton, torchOn && styles.controlActive]}
+              onPress={() => setTorchOn((prev) => !prev)}
+            >
+              <Text style={styles.controlIcon}>🔦</Text>
+              <Text
+                style={[
+                  styles.controlLabel,
+                  torchOn && styles.controlLabelActive,
+                ]}
+              >
+                {torchOn ? "ON" : "OFF"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.controlButton, zoom > 0 && styles.controlActive]}
+              onPress={cycleZoom}
+            >
+              <Text style={styles.controlIcon}>🔍</Text>
+              <Text
+                style={[
+                  styles.controlLabel,
+                  zoom > 0 && styles.controlLabelActive,
+                ]}
+              >
+                {zoomLabel}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Rescan button */}
           {scanned && (
             <TouchableOpacity
               style={styles.rescanButton}
@@ -120,15 +189,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
+  // Rectangular scan guide — wide and short to match barcode shape
   scanArea: {
-    width: 250,
-    height: 250,
+    width: 300,
+    height: 140,
     position: "relative",
   },
   corner: {
     position: "absolute",
-    width: 30,
-    height: 30,
+    width: 35,
+    height: 35,
     borderColor: "#8b5cf6",
     borderWidth: 3,
   },
@@ -160,9 +230,57 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderBottomRightRadius: 8,
   },
+  scanLine: {
+    position: "absolute",
+    top: "50%",
+    left: 20,
+    right: 20,
+    height: 2,
+    backgroundColor: "rgba(139,92,246,0.6)",
+    marginTop: -1,
+  },
+  hint: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 12,
+    marginTop: 16,
+    fontWeight: "500",
+  },
+  controlsRow: {
+    position: "absolute",
+    bottom: 120,
+    flexDirection: "row",
+    gap: 20,
+  },
+  controlButton: {
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    alignItems: "center",
+    minWidth: 80,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  controlActive: {
+    backgroundColor: "rgba(139,92,246,0.7)",
+    borderColor: "rgba(139,92,246,0.9)",
+  },
+  controlIcon: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  controlLabel: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  controlLabelActive: {
+    color: "#fff",
+  },
   rescanButton: {
     position: "absolute",
-    bottom: 80,
+    bottom: 70,
     backgroundColor: "rgba(139,92,246,0.9)",
     borderRadius: 12,
     paddingHorizontal: 24,
