@@ -5,6 +5,7 @@ import { auth } from "./auth";
 import { healthRoutes } from "./routes/health";
 import { productRoutes } from "./routes/products";
 import { locationRoutes } from "./routes/locations";
+import { inventoryRoutes } from "./routes/inventory";
 
 const app = new Hono()
   .use("*", logger())
@@ -25,7 +26,8 @@ const app = new Hono()
   })
   .route("/api", healthRoutes)
   .route("/api", productRoutes)
-  .route("/api", locationRoutes);
+  .route("/api", locationRoutes)
+  .route("/api", inventoryRoutes);
 
 export { app };
 export type AppType = typeof app;

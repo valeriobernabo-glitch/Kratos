@@ -13,18 +13,21 @@
     "migrate": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
     "seed": "tsx src/seed.ts",
+    "import:locations": "tsx src/migration/import-locations.ts",
+    "import:products": "tsx src/migration/import-products.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@paralleldrive/cuid2": "^2.2.0",
     "drizzle-orm": "^0.39.0",
     "postgres": "^3.4.0",
-    "@paralleldrive/cuid2": "^2.2.0"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@kratos/config": "workspace:*",
+    "dotenv": "^16.4.0",
     "drizzle-kit": "^0.30.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0",
-    "dotenv": "^16.4.0"
+    "typescript": "^5.7.0"
   }
 }
