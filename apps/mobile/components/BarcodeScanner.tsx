@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import {
-  CameraView,
-  useCameraPermissions,
-  type BarcodeScanningResult,
-} from "expo-camera";
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useCodeScanner,
+} from "react-native-vision-camera";
 import * as Haptics from "expo-haptics";
 
 type Props = {
@@ -14,25 +15,28 @@ type Props = {
 };
 
 export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
-  const [permission, requestPermission] = useCameraPermissions();
+  const { hasPermission, requestPermission } = useCameraPermission();
   const [scanned, setScanned] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
-  const [zoom, setZoom] = useState(0);
+  const device = useCameraDevice("back");
 
-  if (!permission) {
+  const codeScanner = useCodeScanner({
+    codeTypes: ["code-128", "code-39"],
+    onCodeScanned: (codes) => {
+      if (scanned || codes.length === 0) return;
+      const value = codes[0]?.value;
+      if (!value) return;
+
+      setScanned(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      onScan(value);
+    },
+  });
+
+  if (!hasPermission) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>Requesting camera permission...</Text>
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.message}>
-          Camera access is required for scanning
-        </Text>
+        <Text style={styles.message}>Camera access is required for scanning</Text>
         <TouchableOpacity style={styles.button} onPress={requestPermission}>
           <Text style={styles.buttonText}>Grant Permission</Text>
         </TouchableOpacity>
@@ -43,106 +47,79 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
     );
   }
 
-  function handleScan(result: BarcodeScanningResult) {
-    if (scanned) return;
-    setScanned(true);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    onScan(result.data);
+  if (!device) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>No camera device found</Text>
+        <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+          <Text style={styles.cancelText}>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
-
-  function cycleZoom() {
-    setZoom((prev) => {
-      if (prev === 0) return 0.1;
-      if (prev === 0.1) return 0.2;
-      return 0;
-    });
-  }
-
-  const zoomLabel = zoom === 0 ? "1x" : zoom === 0.1 ? "2x" : "3x";
 
   return (
     <View style={styles.container}>
-      <CameraView
+      <Camera
         style={styles.camera}
-        facing="back"
-        autofocus="on"
-        zoom={zoom}
-        enableTorch={torchOn}
-        barcodeScannerSettings={{
-          barcodeTypes: [
-            "code128",
-            "code39",
-          ],
-          interval: 300,
-        }}
-        onBarcodeScanned={scanned ? undefined : handleScan}
-      >
-        <View style={styles.overlay}>
-          {/* Instruction bar */}
-          {instruction && (
-            <View style={styles.instructionBar}>
-              <Text style={styles.instructionText}>{instruction}</Text>
-            </View>
-          )}
+        device={device}
+        isActive={true}
+        codeScanner={codeScanner}
+        torch={torchOn ? "on" : "off"}
+        enableZoomGesture={true}
+      />
 
-          {/* Rectangular scan guide — matches barcode shape */}
-          <View style={styles.scanArea}>
-            <View style={[styles.corner, styles.topLeft]} />
-            <View style={[styles.corner, styles.topRight]} />
-            <View style={[styles.corner, styles.bottomLeft]} />
-            <View style={[styles.corner, styles.bottomRight]} />
-            {/* Center line to help align with barcode */}
-            <View style={styles.scanLine} />
+      {/* Overlay */}
+      <View style={styles.overlayContainer}>
+        {/* Instruction bar */}
+        {instruction && (
+          <View style={styles.instructionBar}>
+            <Text style={styles.instructionText}>{instruction}</Text>
           </View>
+        )}
 
-          <Text style={styles.hint}>
-            Align barcode within the frame
-          </Text>
-
-          {/* Controls row: torch + zoom */}
-          <View style={styles.controlsRow}>
-            <TouchableOpacity
-              style={[styles.controlButton, torchOn && styles.controlActive]}
-              onPress={() => setTorchOn((prev) => !prev)}
-            >
-              <Text style={styles.controlIcon}>🔦</Text>
-              <Text
-                style={[
-                  styles.controlLabel,
-                  torchOn && styles.controlLabelActive,
-                ]}
-              >
-                {torchOn ? "ON" : "OFF"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.controlButton, zoom > 0 && styles.controlActive]}
-              onPress={cycleZoom}
-            >
-              <Text style={styles.controlIcon}>🔍</Text>
-              <Text
-                style={[
-                  styles.controlLabel,
-                  zoom > 0 && styles.controlLabelActive,
-                ]}
-              >
-                {zoomLabel}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Rescan button */}
-          {scanned && (
-            <TouchableOpacity
-              style={styles.rescanButton}
-              onPress={() => setScanned(false)}
-            >
-              <Text style={styles.rescanText}>Tap to scan again</Text>
-            </TouchableOpacity>
-          )}
+        {/* Rectangular scan guide */}
+        <View style={styles.scanArea}>
+          <View style={[styles.corner, styles.topLeft]} />
+          <View style={[styles.corner, styles.topRight]} />
+          <View style={[styles.corner, styles.bottomLeft]} />
+          <View style={[styles.corner, styles.bottomRight]} />
+          <View style={styles.scanLine} />
         </View>
-      </CameraView>
+
+        <Text style={styles.hint}>
+          Align barcode within the frame{"\n"}
+          Pinch to zoom
+        </Text>
+
+        {/* Controls */}
+        <View style={styles.controlsRow}>
+          <TouchableOpacity
+            style={[styles.controlButton, torchOn && styles.controlActive]}
+            onPress={() => setTorchOn((prev) => !prev)}
+          >
+            <Text style={styles.controlIcon}>🔦</Text>
+            <Text
+              style={[
+                styles.controlLabel,
+                torchOn && styles.controlLabelActive,
+              ]}
+            >
+              {torchOn ? "ON" : "OFF"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Rescan */}
+        {scanned && (
+          <TouchableOpacity
+            style={styles.rescanButton}
+            onPress={() => setScanned(false)}
+          >
+            <Text style={styles.rescanText}>Tap to scan again</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>
         <Text style={styles.closeText}>Close Scanner</Text>
@@ -159,11 +136,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   camera: {
-    flex: 1,
-    width: "100%",
+    ...StyleSheet.absoluteFillObject,
   },
-  overlay: {
-    flex: 1,
+  overlayContainer: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -182,7 +158,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
-  // Rectangular scan guide — wide and short to match barcode shape
   scanArea: {
     width: 300,
     height: 140,
@@ -237,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 16,
     fontWeight: "500",
+    textAlign: "center",
   },
   controlsRow: {
     position: "absolute",
@@ -293,6 +269,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     alignItems: "center",
+    zIndex: 10,
   },
   closeText: {
     color: "#fff",
