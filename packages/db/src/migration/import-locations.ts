@@ -46,7 +46,10 @@ async function importLocations() {
 
   console.log(`Found ${rows.length} rows`);
 
-  const validRows = rows.filter((r) => r.name && r.barcode);
+  const validRows = rows.filter((r) => r.name).map((r) => ({
+    ...r,
+    barcode: r.barcode || r.name,
+  }));
   console.log(`Valid locations: ${validRows.length}`);
 
   const values = validRows.map((r) => {
