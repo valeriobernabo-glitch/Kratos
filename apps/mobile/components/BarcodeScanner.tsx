@@ -1,14 +1,12 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import {
   Camera,
   useCameraDevice,
   useCameraPermission,
 } from "react-native-vision-camera";
-import {
-  useBarcodeScanner,
-  BarcodeFormat,
-} from "@mgcrea/vision-camera-barcode-scanner";
+import { useBarcodeScanner } from "@mgcrea/vision-camera-barcode-scanner";
+import { Worklets } from "react-native-worklets-core";
 import * as Haptics from "expo-haptics";
 
 type Props = {
@@ -24,38 +22,43 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
   const [debugInfo, setDebugInfo] = useState("Initializing scanner...");
   const device = useCameraDevice("back");
 
+  const handleBarcodeOnJS = useCallback(
+    (value: string, format: string) => {
+      setDebugInfo(`FOUND: format=${format} value=${value}`);
+      console.log(`[SCAN] format=${format} value=${value}`);
+
+      if (scanned) return;
+      setScanned(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      onScan(value);
+    },
+    [scanned, onScan],
+  );
+
+  const handleBarcodeJS = Worklets.createRunOnJS(handleBarcodeOnJS);
+
   const { props: cameraProps } = useBarcodeScanner({
     fps: 5,
     barcodeTypes: [
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.CODE_93,
-      BarcodeFormat.CODABAR,
-      BarcodeFormat.ITF,
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.EAN_8,
-      BarcodeFormat.UPC_A,
-      BarcodeFormat.UPC_E,
-      BarcodeFormat.QR_CODE,
+      "code-39",
+      "code-128",
+      "code-93",
+      "codabar",
+      "itf",
+      "ean-13",
+      "ean-8",
+      "upc-a",
+      "upc-e",
+      "qr",
     ],
-    callbacks: {
-      onBarcodeScanned: (barcodes) => {
-        if (barcodes.length === 0) {
-          setDebugInfo("Scanning... (no barcode detected)");
-          return;
-        }
-
-        const barcode = barcodes[0];
-        const value = barcode?.value;
-        const format = barcode?.format;
-        setDebugInfo(`FOUND: format=${format} value=${value}`);
-        console.log(`[SCAN] format=${format} value=${value}`);
-
-        if (scanned || !value) return;
-        setScanned(true);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        onScan(value);
-      },
+    onBarcodeScanned: (barcodes) => {
+      "worklet";
+      if (barcodes.length === 0) return;
+      const barcode = barcodes[0];
+      const value = barcode?.value;
+      const format = barcode?.format ?? "unknown";
+      if (!value) return;
+      handleBarcodeJS(value, format);
     },
   });
 
