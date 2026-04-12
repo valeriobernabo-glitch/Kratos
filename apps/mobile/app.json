@@ -37,10 +37,9 @@
     },
     "plugins": [
       [
-        "react-native-vision-camera",
+        "expo-camera",
         {
-          "cameraPermissionText": "Kratos WMS needs camera access to scan barcodes",
-          "enableCodeScanner": true
+          "cameraPermission": "Kratos WMS needs camera access to scan barcodes"
         }
       ],
       "expo-router"

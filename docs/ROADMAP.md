@@ -397,6 +397,100 @@ locations        → id, tenant_id, name, barcode, row, bay, level, bin,
 
 ---
 
+### Phase 4.5: Barcode Scanning — Production-Quality Solution (Est. 3-5 sessions)
+
+**Goal**: Deliver a fast, accurate, reliable barcode scanning experience on mobile. This is **critical to the success of Kratos** — warehouse staff will scan hundreds of times per day and any slowness or misreads will kill productivity.
+
+**Context**: Phase 3 shipped with `expo-camera` + confirmation step as a stable fallback. It works but has trade-offs:
+- Uses Google Code Scanner API (same ZXing-based engine under the hood)
+- Occasionally misreads Code 39 barcodes (wrong digits)
+- Requires a confirmation tap per scan to catch misreads
+- Not as fast as dedicated scanning apps
+
+**What we learned during Phase 3 scanner attempts:**
+
+1. **`expo-camera` (ZXing-based)** — detects Code 39 but misreads some characters. QR codes work perfectly. Fast. Works in Expo Go.
+2. **`react-native-vision-camera` built-in code scanner** — detects QR codes but **does not detect 1D barcodes on Android at all**. This is a known limitation of Google Code Scanner API for 1D formats.
+3. **`@mgcrea/vision-camera-barcode-scanner`** — uses MLKit through frame processors. Never got it fully working due to:
+   - Worklet compilation errors with the babel plugin chain
+   - React state updates from worklet context require `Worklets.createRunOnJS` which had API issues
+   - Complex native module build requirements via EAS
+4. **Google Lens and "Barcode Scanner" app from Play Store** — both read our Code 39 barcodes perfectly (100% accuracy, fast). They use native MLKit integration that expo-camera/vision-camera wrappers can't match.
+5. **Our barcodes are Code 39** with a tight quiet zone (minimal white space around the bars). This exacerbates accuracy issues with wrappers but works fine with native MLKit.
+
+**Retest some assumptions (things that might have been broken during Phase 3 attempts):**
+- [ ] 4.5.0 Verify the VisionCamera built-in scanner actually doesn't detect 1D barcodes in a clean setup — our test had the plugin config potentially misapplied. Rebuild from scratch in an isolated test project.
+- [ ] 4.5.1 Verify the `@mgcrea` plugin worklet crash was due to babel config, not fundamental incompatibility. Test with the correct babel setup in isolation.
+- [ ] 4.5.2 Test if `expo-camera` misreads disappear when restricted to Code 39 only (not Code 128 + Code 39 together). The decoder may be confusing formats.
+- [ ] 4.5.3 Test if the misreads are camera-quality related (can be fixed with better autofocus) vs algorithm related.
+
+**Candidate solutions to evaluate:**
+
+- [ ] 4.5.4 **Option A: Fresh VisionCamera + MLKit frame processor setup**
+  - Start with a clean Expo project
+  - Install `react-native-vision-camera` + `react-native-worklets-core` + `@mgcrea/vision-camera-barcode-scanner`
+  - Configure babel plugin correctly from the start
+  - Build a minimal scanner that just logs detections — no state updates, no UI
+  - If it detects Code 39 correctly in the minimal setup, port to Kratos
+  - **Pros**: Free, uses MLKit (same as Google Lens)
+  - **Cons**: Complex native setup, worklet complexity
+
+- [ ] 4.5.5 **Option B: Native MLKit wrapper (react-native-ml-kit)**
+  - Evaluate `@react-native-ml-kit/barcode-scanning` package
+  - Takes a photo with expo-camera, passes to MLKit for decoding
+  - Simpler than frame processors (no worklets)
+  - Slower (snapshot-based, not real-time video)
+  - **Test**: can it read our Code 39 labels accurately?
+
+- [ ] 4.5.6 **Option C: Dedicated commercial SDK (Scandit or Dynamsoft)**
+  - Scandit: best accuracy, enterprise pricing (quote-based, likely $$$)
+  - Dynamsoft: great accuracy, ~$1,400/year per developer
+  - **Evaluate**: is the accuracy gain worth the cost for 2 staff, 70 orders/day?
+  - **Pros**: Works perfectly, no development effort
+  - **Cons**: Costs money, vendor lock-in
+
+- [ ] 4.5.7 **Option D: Printed barcode upgrade**
+  - Switch to Code 128 (denser, better tolerance)
+  - Or GS1 DataMatrix (2D barcode, extremely reliable)
+  - Reprint all warehouse location labels with proper quiet zones
+  - **Pros**: Solves misreads at the source
+  - **Cons**: Physical work to replace all labels
+
+- [ ] 4.5.8 **Option E: Dedicated hardware scanner**
+  - Zebra TC21/TC26, Honeywell CT40, or similar
+  - Cost: ~$300-500 per device × 2 staff = $600-1000
+  - Native laser scanner — instant reads, zero misreads
+  - Runs Android so Kratos app still works on it
+  - **Pros**: Most reliable, professional solution
+  - **Cons**: Upfront cost
+
+**Decision framework:**
+1. First try to fix the software (free): Option A or B
+2. If that fails, evaluate barcode label quality: Option D
+3. If still problematic, budget for hardware: Option E
+4. Only pay for commercial SDKs (Option C) if nothing else works
+
+**Tasks:**
+- [ ] 4.5.9 Set up isolated test project to retest Options A and B side-by-side
+- [ ] 4.5.10 Benchmark: scan 50 different warehouse barcodes with each candidate solution, record accuracy
+- [ ] 4.5.11 Measure scan time (wall clock) for each solution
+- [ ] 4.5.12 Test in realistic conditions: poor lighting, behind plastic wrap, various angles
+- [ ] 4.5.13 Document the winner and its trade-offs
+- [ ] 4.5.14 Implement winning solution in Kratos mobile app
+- [ ] 4.5.15 Remove the confirmation step from Phase 3 (if winner has >99% accuracy)
+- [ ] 4.5.16 Add retry logic and graceful error handling
+- [ ] 4.5.17 Update mobile workflows to use new scanner
+- [ ] 4.5.18 Rebuild APK and deploy
+
+**Success criteria:**
+- ≥99% first-scan accuracy on real warehouse barcodes
+- <500ms scan time (from camera open to value detected)
+- Works in warehouse lighting conditions (shadows, fluorescent lights)
+- Works with barcodes behind plastic wrap/shrink wrap
+- No confirmation step needed for routine scans
+
+---
+
 ### Phase 5: Shopify Integration (Est. 2-3 sessions)
 **Goal**: Auto-import orders from Shopify and sync inventory back.
 

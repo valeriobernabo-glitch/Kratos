@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@kratos/shared": "workspace:*",
-    "@mgcrea/vision-camera-barcode-scanner": "^0.12.3",
     "expo": "~54.0.33",
     "expo-camera": "~17.0.0",
     "expo-dev-client": "^6.0.20",
@@ -22,9 +21,7 @@
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
-    "react-native-vision-camera": "^4.7.3",
-    "react-native-worklets-core": "^1.6.3"
+    "react-native-screens": "~4.16.0"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
