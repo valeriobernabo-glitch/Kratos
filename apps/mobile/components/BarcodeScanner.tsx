@@ -4,11 +4,8 @@ import {
   Camera,
   useCameraDevice,
   useCameraPermission,
+  useCodeScanner,
 } from "react-native-vision-camera";
-import {
-  useBarcodeScanner,
-  BarcodeFormat,
-} from "@mgcrea/vision-camera-barcode-scanner";
 import * as Haptics from "expo-haptics";
 
 type Props = {
@@ -21,29 +18,24 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
   const { hasPermission, requestPermission } = useCameraPermission();
   const [scanned, setScanned] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
+  const [debugInfo, setDebugInfo] = useState("Waiting for scan...");
   const device = useCameraDevice("back");
 
-  const { props: cameraProps } = useBarcodeScanner({
-    fps: 5,
-    barcodeTypes: [
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.QR_CODE,
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.EAN_8,
-    ],
-    callbacks: {
-      onBarcodeScanned: (barcodes) => {
-        if (scanned || barcodes.length === 0) return;
-        const barcode = barcodes[0];
-        const value = barcode?.value;
-        if (!value) return;
+  const codeScanner = useCodeScanner({
+    codeTypes: ["code-39", "code-128", "code-93", "codabar", "ean-13", "ean-8", "itf", "upc-a", "upc-e", "qr", "data-matrix", "pdf-417", "aztec"],
+    onCodeScanned: (codes) => {
+      if (codes.length === 0) return;
 
-        console.log(`[SCAN] format=${barcode?.format} value=${value}`);
-        setScanned(true);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        onScan(value);
-      },
+      const code = codes[0];
+      const value = code?.value;
+      const type = code?.type;
+      setDebugInfo(`FOUND: type=${type} value=${value}`);
+      console.log(`[SCAN] type=${type} value=${value}`);
+
+      if (scanned || !value) return;
+      setScanned(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      onScan(value);
     },
   });
 
@@ -80,12 +72,11 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
         style={styles.camera}
         device={device}
         isActive={true}
+        codeScanner={codeScanner}
         torch={torchOn ? "on" : "off"}
         enableZoomGesture={true}
-        {...cameraProps}
       />
 
-      {/* Overlay */}
       <View style={styles.overlayContainer}>
         {instruction && (
           <View style={styles.instructionBar}>
@@ -93,7 +84,6 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
           </View>
         )}
 
-        {/* Rectangular scan guide */}
         <View style={styles.scanArea}>
           <View style={[styles.corner, styles.topLeft]} />
           <View style={[styles.corner, styles.topRight]} />
@@ -103,11 +93,14 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
         </View>
 
         <Text style={styles.hint}>
-          Align barcode within the frame{"\n"}
-          Pinch to zoom
+          Align barcode within the frame{"\n"}Pinch to zoom
         </Text>
 
-        {/* Controls */}
+        {/* Debug — shows what the scanner detects */}
+        <View style={styles.debugBar}>
+          <Text style={styles.debugText}>{debugInfo}</Text>
+        </View>
+
         <View style={styles.controlsRow}>
           <TouchableOpacity
             style={[styles.controlButton, torchOn && styles.controlActive]}
@@ -115,10 +108,7 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
           >
             <Text style={styles.controlIcon}>🔦</Text>
             <Text
-              style={[
-                styles.controlLabel,
-                torchOn && styles.controlLabelActive,
-              ]}
+              style={[styles.controlLabel, torchOn && styles.controlLabelActive]}
             >
               {torchOn ? "ON" : "OFF"}
             </Text>
@@ -128,7 +118,10 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
         {scanned && (
           <TouchableOpacity
             style={styles.rescanButton}
-            onPress={() => setScanned(false)}
+            onPress={() => {
+              setScanned(false);
+              setDebugInfo("Waiting for scan...");
+            }}
           >
             <Text style={styles.rescanText}>Tap to scan again</Text>
           </TouchableOpacity>
@@ -184,34 +177,10 @@ const styles = StyleSheet.create({
     borderColor: "#8b5cf6",
     borderWidth: 3,
   },
-  topLeft: {
-    top: 0,
-    left: 0,
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-    borderTopLeftRadius: 8,
-  },
-  topRight: {
-    top: 0,
-    right: 0,
-    borderLeftWidth: 0,
-    borderBottomWidth: 0,
-    borderTopRightRadius: 8,
-  },
-  bottomLeft: {
-    bottom: 0,
-    left: 0,
-    borderRightWidth: 0,
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 8,
-  },
-  bottomRight: {
-    bottom: 0,
-    right: 0,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    borderBottomRightRadius: 8,
-  },
+  topLeft: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 8 },
+  topRight: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0, borderTopRightRadius: 8 },
+  bottomLeft: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 8 },
+  bottomRight: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 8 },
   scanLine: {
     position: "absolute",
     top: "50%",
@@ -226,6 +195,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 16,
     fontWeight: "500",
+    textAlign: "center",
+  },
+  debugBar: {
+    position: "absolute",
+    bottom: 170,
+    left: 10,
+    right: 10,
+    backgroundColor: "rgba(0,0,0,0.85)",
+    borderRadius: 8,
+    padding: 10,
+  },
+  debugText: {
+    color: "#0f0",
+    fontSize: 12,
+    fontFamily: "monospace",
     textAlign: "center",
   },
   controlsRow: {
@@ -248,19 +232,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(139,92,246,0.7)",
     borderColor: "rgba(139,92,246,0.9)",
   },
-  controlIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
+  controlIcon: { fontSize: 20, marginBottom: 4 },
   controlLabel: {
     color: "rgba(255,255,255,0.7)",
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1,
   },
-  controlLabelActive: {
-    color: "#fff",
-  },
+  controlLabelActive: { color: "#fff" },
   rescanButton: {
     position: "absolute",
     bottom: 70,
@@ -269,11 +248,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
   },
-  rescanText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
+  rescanText: { color: "#fff", fontSize: 14, fontWeight: "700" },
   closeButton: {
     position: "absolute",
     bottom: 40,
@@ -285,36 +260,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 10,
   },
-  closeText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  message: {
-    color: "#fff",
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: "center",
-    paddingHorizontal: 20,
-  },
-  button: {
-    backgroundColor: "#8b5cf6",
-    borderRadius: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    marginBottom: 12,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  cancelButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  cancelText: {
-    color: "#999",
-    fontSize: 14,
-  },
+  closeText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  message: { color: "#fff", fontSize: 16, marginBottom: 20, textAlign: "center", paddingHorizontal: 20 },
+  button: { backgroundColor: "#8b5cf6", borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12, marginBottom: 12 },
+  buttonText: { color: "#fff", fontSize: 14, fontWeight: "700" },
+  cancelButton: { paddingHorizontal: 24, paddingVertical: 12 },
+  cancelText: { color: "#999", fontSize: 14 },
 });
