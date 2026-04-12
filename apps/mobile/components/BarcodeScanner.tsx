@@ -1,11 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import {
   Camera,
   useCameraDevice,
   useCameraPermission,
-  useCodeScanner,
 } from "react-native-vision-camera";
+import {
+  useBarcodeScanner,
+  BarcodeFormat,
+} from "@mgcrea/vision-camera-barcode-scanner";
 import * as Haptics from "expo-haptics";
 
 type Props = {
@@ -20,23 +23,36 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
   const [torchOn, setTorchOn] = useState(false);
   const device = useCameraDevice("back");
 
-  const codeScanner = useCodeScanner({
-    codeTypes: ["code-128", "code-39"],
-    onCodeScanned: (codes) => {
-      if (scanned || codes.length === 0) return;
-      const value = codes[0]?.value;
-      if (!value) return;
+  const { props: cameraProps } = useBarcodeScanner({
+    fps: 5,
+    barcodeTypes: [
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.QR_CODE,
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+    ],
+    callbacks: {
+      onBarcodeScanned: (barcodes) => {
+        if (scanned || barcodes.length === 0) return;
+        const barcode = barcodes[0];
+        const value = barcode?.value;
+        if (!value) return;
 
-      setScanned(true);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      onScan(value);
+        console.log(`[SCAN] format=${barcode?.format} value=${value}`);
+        setScanned(true);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        onScan(value);
+      },
     },
   });
 
   if (!hasPermission) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>Camera access is required for scanning</Text>
+        <Text style={styles.message}>
+          Camera access is required for scanning
+        </Text>
         <TouchableOpacity style={styles.button} onPress={requestPermission}>
           <Text style={styles.buttonText}>Grant Permission</Text>
         </TouchableOpacity>
@@ -64,14 +80,13 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
         style={styles.camera}
         device={device}
         isActive={true}
-        codeScanner={codeScanner}
         torch={torchOn ? "on" : "off"}
         enableZoomGesture={true}
+        {...cameraProps}
       />
 
       {/* Overlay */}
       <View style={styles.overlayContainer}>
-        {/* Instruction bar */}
         {instruction && (
           <View style={styles.instructionBar}>
             <Text style={styles.instructionText}>{instruction}</Text>
@@ -110,7 +125,6 @@ export function BarcodeScanner({ onScan, onClose, instruction }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* Rescan */}
         {scanned && (
           <TouchableOpacity
             style={styles.rescanButton}

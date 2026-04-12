@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@kratos/shared": "workspace:*",
+    "@mgcrea/vision-camera-barcode-scanner": "^0.12.3",
     "expo": "~54.0.33",
     "expo-camera": "~17.0.0",
     "expo-dev-client": "^6.0.20",
