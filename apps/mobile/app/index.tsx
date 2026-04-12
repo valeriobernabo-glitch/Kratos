@@ -20,21 +20,21 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.card, styles.cardDisabled]}
-          disabled
+          style={styles.card}
+          onPress={() => router.push("/pick")}
         >
           <Text style={styles.cardIcon}>📋</Text>
           <Text style={styles.cardTitle}>Pick Orders</Text>
-          <Text style={styles.cardDesc}>Coming in Phase 4</Text>
+          <Text style={styles.cardDesc}>Work on wave picks</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.card, styles.cardDisabled]}
-          disabled
+          style={styles.card}
+          onPress={() => router.push("/pack")}
         >
           <Text style={styles.cardIcon}>📦</Text>
-          <Text style={styles.cardTitle}>Pack Orders</Text>
-          <Text style={styles.cardDesc}>Coming in Phase 4</Text>
+          <Text style={styles.cardTitle}>Pack & Ship</Text>
+          <Text style={styles.cardDesc}>Pack orders, enter tracking</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

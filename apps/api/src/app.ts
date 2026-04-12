@@ -7,6 +7,8 @@ import { productRoutes } from "./routes/products";
 import { locationRoutes } from "./routes/locations";
 import { inventoryRoutes } from "./routes/inventory";
 import { purchaseOrderRoutes } from "./routes/purchase-orders";
+import { salesOrderRoutes } from "./routes/sales-orders";
+import { wavePickRoutes } from "./routes/wave-picks";
 
 const app = new Hono()
   .use("*", logger())
@@ -29,7 +31,9 @@ const app = new Hono()
   .route("/api", productRoutes)
   .route("/api", locationRoutes)
   .route("/api", inventoryRoutes)
-  .route("/api", purchaseOrderRoutes);
+  .route("/api", purchaseOrderRoutes)
+  .route("/api", salesOrderRoutes)
+  .route("/api", wavePickRoutes);
 
 export { app };
 export type AppType = typeof app;

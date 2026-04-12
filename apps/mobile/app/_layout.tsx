@@ -15,6 +15,8 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ title: "Kratos WMS" }} />
         <Stack.Screen name="receive" options={{ title: "Receive Stock" }} />
+        <Stack.Screen name="pick" options={{ title: "Pick Orders" }} />
+        <Stack.Screen name="pack" options={{ title: "Pack & Ship" }} />
         <Stack.Screen
           name="scan"
           options={{ title: "Scanner", presentation: "modal" }}
